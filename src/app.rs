@@ -22,6 +22,7 @@ impl Model {
     }
 }
 
+#[derive(Debug)]
 pub enum Message {
     Resize { cols: u16, rows: u16 },
     SamusMoved { x: u8, y: u8 },

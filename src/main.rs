@@ -9,12 +9,20 @@ use ratatui::{
     style::Stylize,
     widgets::Paragraph,
 };
-use std::{sync::mpsc, thread, time::Duration};
+use std::{fs::File, sync::mpsc, thread, time::Duration};
+use tracing::info;
 
 fn main() -> Result<()> {
+    let file = File::create("maptroid.log").context("opening log file")?;
+    tracing_subscriber::fmt()
+        .with_writer(file)
+        .with_ansi(false)
+        .init();
+
     let mut tui = tui::init().context("initializing terminal")?;
     tui.clear()?;
 
+    info!("starting main loop");
     let result = main_loop(tui);
 
     tui::restore().context("restoring terminal")?;
@@ -44,13 +52,15 @@ fn main_loop(mut tui: Tui) -> Result<()> {
 }
 
 fn run_ui_loop(bus: mpsc::Sender<Message>) -> Result<()> {
-    let message = read_next_event()
-        .context("reading next event")?
-        .and_then(event_to_message);
-    if let Some(message) = message {
-        bus.send(message).unwrap();
+    loop {
+        let msg = read_next_event()
+            .context("reading next event")?
+            .and_then(event_to_message);
+        if let Some(msg) = msg {
+            info!(msg = ?msg, "sending message");
+            bus.send(msg).unwrap();
+        }
     }
-    Ok(())
 }
 
 fn view(tui: &mut Tui, model: &Model) -> Result<()> {
