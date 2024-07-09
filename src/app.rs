@@ -1,14 +1,19 @@
-pub struct Model {}
+#[derive(Debug, Default)]
+pub struct Model {
+    pub samus: Position,
+}
+
+#[derive(Debug, Default)]
+pub struct Position {
+    pub x: u8,
+    pub y: u8,
+}
 
 impl Model {
-    pub fn new() -> Model {
-        Model {}
-    }
-
     pub fn update(&mut self, msg: Message) -> SideEffect {
         match msg {
             Message::SamusMoved { x, y } => {
-                // TODO
+                self.samus = Position { x, y };
                 SideEffect::Continue
             }
             Message::Quit => SideEffect::Stop,
@@ -16,8 +21,6 @@ impl Model {
         }
     }
 }
-
-pub struct Point(u8, u8);
 
 pub enum Message {
     Resize { cols: u16, rows: u16 },
