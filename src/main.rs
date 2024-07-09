@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use maptroid::{
     app::{Message, Model, SideEffect},
     snes,
-    tui::{init, restore, Tui},
+    tui::{self, Tui},
 };
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
@@ -12,10 +12,17 @@ use ratatui::{
 use std::{sync::mpsc, thread, time::Duration};
 
 fn main() -> Result<()> {
-    let mut tui = init().context("initializing terminal")?;
+    let mut tui = tui::init().context("initializing terminal")?;
     tui.clear()?;
 
-    let mut model = Model::new();
+    let result = main_loop(tui);
+
+    tui::restore().context("restoring terminal")?;
+    result
+}
+
+fn main_loop(mut tui: Tui) -> Result<()> {
+    let mut model = Model::default();
     let (sender, receiver) = mpsc::channel();
 
     let snes_sender = sender.clone();
@@ -24,19 +31,16 @@ fn main() -> Result<()> {
     thread::spawn(move || run_ui_loop(ui_sender).expect("TODO: error handling"));
 
     view(&mut tui, &model).context("drawing initial UI")?;
-    let result = loop {
+    loop {
         let msg = receiver.recv().unwrap();
 
         match model.update(msg) {
             SideEffect::Continue => {}
-            SideEffect::Stop => break Ok(()),
+            SideEffect::Stop => return Ok(()),
         }
 
         view(&mut tui, &model).context("drawing UI")?;
-    };
-
-    restore().context("restoring terminal")?;
-    result
+    }
 }
 
 fn run_ui_loop(bus: mpsc::Sender<Message>) -> Result<()> {
