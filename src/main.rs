@@ -2,13 +2,9 @@ use anyhow::{Context, Result};
 use maptroid::{
     app::{Message, Model, SideEffect},
     snes,
-    tui::{self, Tui},
+    tui::{self, view, Tui},
 };
-use ratatui::{
-    crossterm::event::{self, Event, KeyCode, KeyEventKind},
-    style::Stylize,
-    widgets::Paragraph,
-};
+use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use std::{fs::File, sync::mpsc, thread, time::Duration};
 use tracing::info;
 
@@ -63,21 +59,8 @@ fn run_ui_loop(bus: mpsc::Sender<Message>) -> Result<()> {
     }
 }
 
-fn view(tui: &mut Tui, model: &Model) -> Result<()> {
-    tui.draw(|frame| {
-        let area = frame.size();
-        frame.render_widget(
-            Paragraph::new("Hello Ratatui! (press 'q' to quit)")
-                .white()
-                .on_blue(),
-            area,
-        );
-    })?;
-    Ok(())
-}
-
 fn read_next_event() -> Result<Option<Event>> {
-    if event::poll(Duration::from_millis(16)).context("polling for event")? {
+    if event::poll(Duration::from_secs(1)).context("polling for event")? {
         return Ok(Some(event::read().context("reading event")?));
     }
     Ok(None)
