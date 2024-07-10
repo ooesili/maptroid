@@ -8,7 +8,11 @@
 
     rust-overlay.inputs = {
       nixpkgs.follows = "nixpkgs";
-      flake-utils.follows = "flake-utils";
+    };
+
+    sm-json-data = {
+      url = "github:vg-json-data/sm-json-data";
+      flake = false;
     };
   };
 
@@ -16,6 +20,7 @@
     flake-utils,
     nixpkgs,
     rust-overlay,
+    sm-json-data,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (
@@ -26,6 +31,8 @@
         };
       in {
         devShell = pkgs.mkShell {
+          SM_JSON_DATA = sm-json-data;
+
           nativeBuildInputs = [
             pkgs.rust-bin.stable.latest.default
           ];
