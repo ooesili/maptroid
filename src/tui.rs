@@ -30,7 +30,7 @@ pub fn restore() -> io::Result<()> {
     Ok(())
 }
 
-pub fn view(tui: &mut Tui, model: &Model) -> Result<()> {
+pub fn view(tui: &mut Tui, _model: &Model) -> Result<()> {
     tui.draw(|frame| {
         let frame_area = frame.size();
 
@@ -44,11 +44,15 @@ pub fn view(tui: &mut Tui, model: &Model) -> Result<()> {
             height: frame_area.height - 2,
         };
 
-        let lines = (0..map_area.height)
-            .map(|_| Line::from((0..map_area.width).map(|_| ".".blue()).collect::<Vec<_>>()))
-            .collect::<Vec<Line>>();
-
-        frame.render_widget(Paragraph::new(lines).block(block), frame_area);
+        let mut grid: Vec<Line> = vec![];
+        for _y in 0..map_area.height {
+            let mut row = vec![];
+            for _x in 0..map_area.width {
+                row.push(".".green());
+            }
+            grid.push(row.into());
+        }
+        frame.render_widget(Paragraph::new(grid).block(block), frame_area);
     })?;
     Ok(())
 }
