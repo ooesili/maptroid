@@ -1,11 +1,12 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use maptroid::{
-    app::{Message, Model, SideEffect},
+    app::{GameData, Message, Model, Position, SideEffect},
+    gamedata::{load_all_rooms, load_room_diagrms},
     snes,
     tui::{self, view, Tui},
 };
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use std::{fs::File, sync::mpsc, thread, time::Duration};
+use std::{env, fs::File, sync::mpsc, thread, time::Duration};
 use tracing::info;
 
 fn main() -> Result<()> {
@@ -26,7 +27,7 @@ fn main() -> Result<()> {
 }
 
 fn main_loop(mut tui: Tui) -> Result<()> {
-    let mut model = Model::default();
+    let mut model = init_model().context("initializing")?;
     let (sender, receiver) = mpsc::channel();
 
     let snes_sender = sender.clone();
@@ -45,6 +46,21 @@ fn main_loop(mut tui: Tui) -> Result<()> {
 
         view(&mut tui, &model).context("drawing UI")?;
     }
+}
+
+fn init_model() -> Result<Model> {
+    let sm_json_data_path =
+        env::var_os("SM_JSON_DATA").ok_or_else(|| anyhow!("$SM_JSON_DATA not set"))?;
+    let region_diagrams = load_room_diagrms(&sm_json_data_path)?;
+    let rooms = load_all_rooms(&sm_json_data_path)?;
+
+    Ok(Model {
+        samus: Position::default(),
+        game_data: GameData {
+            rooms,
+            region_diagrams,
+        },
+    })
 }
 
 fn run_ui_loop(bus: mpsc::Sender<Message>) -> Result<()> {

@@ -1,6 +1,17 @@
-#[derive(Debug, Default)]
+use std::collections::HashMap;
+
+use super::gamedata::{RegionDiagram, Room};
+
+#[derive(Debug)]
 pub struct Model {
     pub samus: Position,
+    pub game_data: GameData,
+}
+
+#[derive(Debug)]
+pub struct GameData {
+    pub region_diagrams: HashMap<String, RegionDiagram>,
+    pub rooms: Vec<Room>,
 }
 
 #[derive(Debug, Default)]
